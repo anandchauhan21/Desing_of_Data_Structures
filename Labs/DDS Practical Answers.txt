@@ -1,0 +1,1174 @@
+//WARNING: Please Select Your language wisely to avoid compile time error.
+
+Practical: 1 - Implement Stack Operations
+
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Stack {
+private:
+    int capacity;
+    int top;
+    vector<int> arr;
+
+public:
+    // Constructor with capacity
+    Stack(int cap) {
+        capacity = cap;
+        top = -1;
+        arr.resize(capacity);
+    }
+
+    // Push operation
+    void push(int x) {
+        if (top == capacity - 1) {
+            cout << "Stack Overflow" << endl;
+            return;
+        }
+        arr[++top] = x;
+    }
+
+    // Pop operation
+    void pop() {
+        if (top == -1) {
+            cout << "Stack Underflow" << endl;
+            return;
+        }
+        cout << arr[top--] << endl;
+    }
+
+    // Peek operation
+    void peek() {
+        if (top == -1) {
+            cout << -1 << endl;
+            return;
+        }
+        cout << arr[top] << endl;
+    }
+
+    // Traverse operation
+    void traverse() {
+        if (top == -1) {
+            cout << "" << endl; // empty stack
+            return;
+        }
+        for (int i = top; i >= 0; i--) {
+            cout << arr[i];
+            if (i != 0) cout << " ";
+        }
+        cout << endl;
+    }
+
+    // Search operation
+    void search(int x) {
+        for (int i = top; i >= 0; i--) {
+            if (arr[i] == x) {
+                cout << (top - i + 1) << endl; // 1-based position from top
+                return;
+            }
+        }
+        cout << -1 << endl;
+    }
+};
+
+int main() {
+    int Q;
+    cin >> Q;
+
+    Stack* st = nullptr; // initially no stack
+
+    while (Q--) {
+        string op;
+        cin >> op;
+
+        if (op == "create") {
+            int cap;
+            cin >> cap;
+            st = new Stack(cap);
+        } 
+        else if (op == "push") {
+            int x;
+            cin >> x;
+            st->push(x);
+        } 
+        else if (op == "pop") {
+            st->pop();
+        } 
+        else if (op == "peek") {
+            st->peek();
+        } 
+        else if (op == "traverse") {
+            st->traverse();
+        } 
+        else if (op == "search") {
+            int x;
+            cin >> x;
+            st->search(x);
+        }
+    }
+
+    return 0;
+}
+_____________________________________________________________________________________________________________________
+
+Practical: 2 - Implement Infix to Postfix Expression Conversion using Stack
+
+#include <iostream>
+#include <stack>
+#include <string>
+using namespace std;
+
+// Function to return precedence of operators
+int precedence(char op) {
+    if (op == '^') return 3;
+    if (op == '*' || op == '/') return 2;
+    if (op == '+' || op == '-') return 1;
+    return 0;
+}
+
+// Function to check if character is operator
+bool isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^');
+}
+
+// Infix to Postfix conversion
+string infixToPostfix(string infix) {
+    stack<char> st;
+    string postfix = "";
+
+    for (char c : infix) {
+        // Operand → directly add to postfix
+        if (isalnum(c)) {
+            postfix += c;
+        }
+        // Left parenthesis → push
+        else if (c == '(') {
+            st.push(c);
+        }
+        // Right parenthesis → pop until '('
+        else if (c == ')') {
+            while (!st.empty() && st.top() != '(') {
+                postfix += st.top();
+                st.pop();
+            }
+            if (!st.empty()) st.pop(); // pop '('
+        }
+        // Operator
+        else if (isOperator(c)) {
+            while (!st.empty() && precedence(st.top()) >= precedence(c)) {
+                // special case for right-associative ^
+                if (c == '^' && precedence(st.top()) == precedence(c)) break;
+                postfix += st.top();
+                st.pop();
+            }
+            st.push(c);
+        }
+    }
+
+    // Pop remaining operators
+    while (!st.empty()) {
+        postfix += st.top();
+        st.pop();
+    }
+
+    return postfix;
+}
+
+// Driver
+int main() {
+    string infix;
+    cin >> infix;
+
+    string result = infixToPostfix(infix);
+    cout << result << endl;
+
+    return 0;
+}
+_____________________________________________________________________________________________________________________
+
+Practical: 3 -  Implement Postfix evaluation using Stack.
+
+#include <iostream>
+#include <stack>
+#include <sstream>
+#include <cmath>
+using namespace std;
+
+// Function to evaluate postfix expression
+int evaluatePostfix(string postfix) {
+    stack<int> st;
+    stringstream ss(postfix);
+    string token;
+
+    while (ss >> token) {
+        // If operand (number), push onto stack
+        if (isdigit(token[0]) || (token.size() > 1 && token[0] == '-')) {
+            st.push(stoi(token));
+        }
+        // Operator
+        else {
+            int val2 = st.top(); st.pop();
+            int val1 = st.top(); st.pop();
+            int result = 0;
+
+            if (token == "+") result = val1 + val2;
+            else if (token == "-") result = val1 - val2;
+            else if (token == "*") result = val1 * val2;
+            else if (token == "/") result = val1 / val2;
+            else if (token == "^") result = pow(val1, val2);
+
+            st.push(result);
+        }
+    }
+    return st.top();
+}
+
+// Driver
+int main() {
+    string postfix;
+    getline(cin, postfix);  // read full line (space-separated tokens)
+
+    cout << evaluatePostfix(postfix) << endl;
+    return 0;
+}
+_________________________________________________________________________________________________________________________
+
+Practical: 4 - Implement Towers of Hanoi using Stack.
+
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Stack {
+    stack<int> s;
+    char name;
+};
+
+void moveDisk(Stack &src, Stack &dest) {
+    int pole1Top = src.s.empty() ? INT_MAX : src.s.top();
+    int pole2Top = dest.s.empty() ? INT_MAX : dest.s.top();
+
+    if (pole1Top < pole2Top) {
+        dest.s.push(src.s.top());
+        src.s.pop();
+        cout << "Move disk " << pole1Top << " from rod " << src.name 
+             << " to rod " << dest.name << endl;
+    } else {
+        src.s.push(dest.s.top());
+        dest.s.pop();
+        cout << "Move disk " << pole2Top << " from rod " << dest.name 
+             << " to rod " << src.name << endl;
+    }
+}
+
+void tohIterative(int num_of_disks, Stack &src, Stack &aux, Stack &dest) {
+    int total_moves = pow(2, num_of_disks) - 1;
+
+    // Larger disks pushed first
+    for (int i = num_of_disks; i >= 1; i--)
+        src.s.push(i);
+
+    // If number of disks is even, swap destination and auxiliary
+    if (num_of_disks % 2 == 0)
+        swap(dest.name, aux.name);
+
+    for (int i = 1; i <= total_moves; i++) {
+        if (i % 3 == 1)
+            moveDisk(src, dest);
+        else if (i % 3 == 2)
+            moveDisk(src, aux);
+        else if (i % 3 == 0)
+            moveDisk(aux, dest);
+    }
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    Stack src, aux, dest;
+    src.name = 'A';
+    aux.name = 'B';
+    dest.name = 'C';
+
+    tohIterative(n, src, aux, dest);
+
+    return 0;
+}
+
+___________________________________________________________________________________________________________
+
+Practical: 5 - Design Queue with Enqueue, Dequeue, Traverse, and Search
+
+#include <iostream>
+using namespace std;
+
+#define MAX 100   // max queue size
+
+class Queue {
+    int arr[MAX];
+    int front, rear;
+
+public:
+    Queue() {
+        front = 0;
+        rear = -1;
+    }
+
+    bool isEmpty() {
+        return (rear < front);
+    }
+
+    bool isFull() {
+        return (rear == MAX - 1);
+    }
+
+    void enqueue(int x) {
+        if (isFull()) return; // ignore if full
+        arr[++rear] = x;
+    }
+
+    void dequeue() {
+        if (isEmpty()) {
+            cout << "EMPTY\n";
+        } else {
+            cout << arr[front++] << "\n";
+        }
+    }
+
+    void traverse() {
+        if (isEmpty()) {
+            cout << "EMPTY\n";
+            return;
+        }
+        for (int i = front; i <= rear; i++) {
+            cout << arr[i];
+            if (i < rear) cout << " ";
+        }
+        cout << "\n";
+    }
+
+    void search(int x) {
+        for (int i = front; i <= rear; i++) {
+            if (arr[i] == x) {
+                cout << "FOUND\n";
+                return;
+            }
+        }
+        cout << "NOT FOUND\n";
+    }
+};
+
+int main() {
+    int Q;
+    cin >> Q;
+    Queue q;
+
+    while (Q--) {
+        string op;
+        cin >> op;
+        if (op == "enqueue") {
+            int x; cin >> x;
+            q.enqueue(x);
+        } 
+        else if (op == "dequeue") {
+            q.dequeue();
+        } 
+        else if (op == "traverse") {
+            q.traverse();
+        } 
+        else if (op == "search") {
+            int x; cin >> x;
+            q.search(x);
+        }
+    }
+    return 0;
+}
+
+___________________________________________________________________________________________________________________________________
+
+Practical: 6 - Design Singly Linked List with Insertion, Deletion, Traversal, Search, and Reverse
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(NULL) {}
+};
+
+class LinkedList {
+    Node* head;
+
+public:
+    LinkedList() : head(NULL) {}
+
+    // Insert at beginning
+    void insertBeg(int x) {
+        Node* newNode = new Node(x);
+        newNode->next = head;
+        head = newNode;
+    }
+
+    // Insert at end
+    void insertEnd(int x) {
+        Node* newNode = new Node(x);
+        if (!head) {
+            head = newNode;
+            return;
+        }
+        Node* temp = head;
+        while (temp->next) temp = temp->next;
+        temp->next = newNode;
+    }
+
+    // Insert at position (1-based)
+    void insertPos(int pos, int x) {
+        if (pos <= 1 || !head) {
+            insertBeg(x);
+            return;
+        }
+        Node* newNode = new Node(x);
+        Node* temp = head;
+        for (int i = 1; i < pos - 1 && temp->next; i++) {
+            temp = temp->next;
+        }
+        newNode->next = temp->next;
+        temp->next = newNode;
+    }
+
+    // Delete by value
+    void deleteVal(int x) {
+        if (!head) {
+            cout << "NOT FOUND\n";
+            return;
+        }
+        if (head->data == x) {
+            Node* temp = head;
+            head = head->next;
+            delete temp;
+            return;
+        }
+        Node* temp = head;
+        while (temp->next && temp->next->data != x) {
+            temp = temp->next;
+        }
+        if (!temp->next) {
+            cout << "NOT FOUND\n";
+            return;
+        }
+        Node* delNode = temp->next;
+        temp->next = temp->next->next;
+        delete delNode;
+    }
+
+    // Search
+    void search(int x) {
+        Node* temp = head;
+        while (temp) {
+            if (temp->data == x) {
+                cout << "FOUND\n";
+                return;
+            }
+            temp = temp->next;
+        }
+        cout << "NOT FOUND\n";
+    }
+
+    // Traverse
+    void traverse() {
+        if (!head) {
+            cout << "EMPTY\n";
+            return;
+        }
+        Node* temp = head;
+        while (temp) {
+            cout << temp->data;
+            temp = temp->next;
+            if (temp) cout << " ";
+        }
+        cout << "\n";
+    }
+
+    // Reverse list
+    void reverse() {
+        Node* prev = NULL;
+        Node* curr = head;
+        Node* next = NULL;
+        while (curr) {
+            next = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = next;
+        }
+        head = prev;
+    }
+};
+
+int main() {
+    int Q;
+    cin >> Q;
+    LinkedList list;
+
+    while (Q--) {
+        string op;
+        cin >> op;
+        if (op == "insertBeg") {
+            int x; cin >> x;
+            list.insertBeg(x);
+        } 
+        else if (op == "insertEnd") {
+            int x; cin >> x;
+            list.insertEnd(x);
+        } 
+        else if (op == "insertPos") {
+            int p, x; cin >> p >> x;
+            list.insertPos(p, x);
+        } 
+        else if (op == "delete") {
+            int x; cin >> x;
+            list.deleteVal(x);
+        } 
+        else if (op == "search") {
+            int x; cin >> x;
+            list.search(x);
+        } 
+        else if (op == "traverse") {
+            list.traverse();
+        } 
+        else if (op == "reverse") {
+            list.reverse();
+        }
+    }
+    return 0;
+}
+__________________________________________________________________________________________________________________
+
+Practical: 7 - Design Doubly Linked List with Insertion, Deletion, Traversal, Search, and Reverse
+
+#include <bits/stdc++.h>
+using namespace std;
+
+class Node {
+public:
+    int data;
+    Node* prev;
+    Node* next;
+    Node(int val) {
+        data = val;
+        prev = next = nullptr;
+    }
+};
+
+class DoublyLinkedList {
+private:
+    Node* head;
+    Node* tail;
+    int size;
+
+public:
+    DoublyLinkedList() {
+        head = tail = nullptr;
+        size = 0;
+    }
+
+    void create(int x) {
+        Node* node = new Node(x);
+        head = tail = node;
+        size = 1;
+    }
+
+    void insertBeg(int x) {
+        Node* node = new Node(x);
+        node->next = head;
+        if (head) head->prev = node;
+        head = node;
+        if (!tail) tail = node;
+        size++;
+    }
+
+    void insertEnd(int x) {
+        Node* node = new Node(x);
+        if (!tail) {
+            head = tail = node;
+        } else {
+            tail->next = node;
+            node->prev = tail;
+            tail = node;
+        }
+        size++;
+    }
+
+    void insertPos(int pos, int x) {
+        if (pos == 1) {
+            insertBeg(x);
+            return;
+        }
+        if (pos == size + 1) {
+            insertEnd(x);
+            return;
+        }
+        Node* temp = head;
+        for (int i = 1; i < pos - 1 && temp; i++) {
+            temp = temp->next;
+        }
+        if (!temp) return; // invalid
+        Node* node = new Node(x);
+        node->next = temp->next;
+        if (temp->next) temp->next->prev = node;
+        temp->next = node;
+        node->prev = temp;
+        if (node->next == nullptr) tail = node;
+        size++;
+    }
+
+    void deleteVal(int x) {
+        Node* temp = head;
+        while (temp && temp->data != x) {
+            temp = temp->next;
+        }
+        if (!temp) {
+            cout << -1 << "\n";
+            return;
+        }
+        cout << temp->data << "\n";
+        if (temp->prev) temp->prev->next = temp->next;
+        else head = temp->next;
+        if (temp->next) temp->next->prev = temp->prev;
+        else tail = temp->prev;
+        delete temp;
+        size--;
+    }
+
+    void traverse() {
+        Node* temp = head;
+        while (temp) {
+            cout << temp->data;
+            if (temp->next) cout << " ";
+            temp = temp->next;
+        }
+        cout << "\n";
+    }
+
+    void reverseTraverse() {
+        Node* temp = tail;
+        while (temp) {
+            cout << temp->data;
+            if (temp->prev) cout << " ";
+            temp = temp->prev;
+        }
+        cout << "\n";
+    }
+
+    void search(int x) {
+        Node* temp = head;
+        int pos = 1;
+        while (temp) {
+            if (temp->data == x) {
+                cout << pos << "\n";
+                return;
+            }
+            temp = temp->next;
+            pos++;
+        }
+        cout << -1 << "\n";
+    }
+};
+
+int main() {
+    int Q;
+    cin >> Q;
+    DoublyLinkedList dll;
+
+    while (Q--) {
+        string op;
+        cin >> op;
+        if (op == "create") {
+            int x; cin >> x;
+            dll.create(x);
+        } else if (op == "insertBeg") {
+            int x; cin >> x;
+            dll.insertBeg(x);
+        } else if (op == "insertEnd") {
+            int x; cin >> x;
+            dll.insertEnd(x);
+        } else if (op == "insertPos") {
+            int pos, x; cin >> pos >> x;
+            dll.insertPos(pos, x);
+        } else if (op == "delete") {
+            int x; cin >> x;
+            dll.deleteVal(x);
+        } else if (op == "traverse") {
+            dll.traverse();
+        } else if (op == "search") {
+            int x; cin >> x;
+            dll.search(x);
+        } else if (op == "reverse") {
+            dll.reverseTraverse();
+        }
+    }
+    return 0;
+}
+
+_________________________________________________________________________________________________________
+
+Practical: 8 - Implement binary search and interpolation search.
+
+#include <iostream>
+using namespace std;
+
+int binarySearch(int arr[], int n, int target) {
+    int low = 0, high = n - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] == target)
+            return mid;
+        else if (arr[mid] < target)
+            low = mid + 1;
+        else
+            high = mid - 1;
+    }
+    return -1;
+}
+
+int interpolationSearch(int arr[], int n, int target) {
+    int low = 0, high = n - 1;
+    while (low <= high && target >= arr[low] && target <= arr[high]) {
+        if (low == high) {
+            if (arr[low] == target) return low;
+            return -1;
+        }
+        int pos = low + ((double)(target - arr[low]) * (high - low)) / (arr[high] - arr[low]);
+        if (arr[pos] == target)
+            return pos;
+        else if (arr[pos] < target)
+            low = pos + 1;
+        else
+            high = pos - 1;
+    }
+    return -1;
+}
+
+int main() {
+    int n, target;
+    
+    cin >> n;
+    int arr[n];
+    
+    for (int i = 0; i < n; ++i)
+        cin >> arr[i];
+    cin >> target;
+
+    int binIndex = binarySearch(arr, n, target);
+    int interpIndex = interpolationSearch(arr, n, target);
+
+    cout << "Binary Search Index: " << binIndex << endl;
+    cout << "Interpolation Search Index: " << interpIndex << endl;
+
+    return 0;
+}
+
+___________________________________________________________________________________________________________
+
+practical: 9 - Implement Bubble sort, selection sort, Insertion sort, quick sort ,merge sort.
+
+#include <bits/stdc++.h>
+using namespace std;
+
+// -------------------- Bubble Sort --------------------
+void bubbleSort(vector<int>& arr) {
+    int n = arr.size();
+    for(int i=0; i<n-1; i++) {
+        for(int j=0; j<n-i-1; j++) {
+            if(arr[j] > arr[j+1]) {
+                swap(arr[j], arr[j+1]);
+            }
+        }
+    }
+}
+
+// -------------------- Selection Sort --------------------
+void selectionSort(vector<int>& arr) {
+    int n = arr.size();
+    for(int i=0; i<n-1; i++) {
+        int minIndex = i;
+        for(int j=i+1; j<n; j++) {
+            if(arr[j] < arr[minIndex]) {
+                minIndex = j;
+            }
+        }
+        swap(arr[i], arr[minIndex]);
+    }
+}
+
+// -------------------- Insertion Sort --------------------
+void insertionSort(vector<int>& arr) {
+    int n = arr.size();
+    for(int i=1; i<n; i++) {
+        int key = arr[i];
+        int j = i-1;
+        while(j >= 0 && arr[j] > key) {
+            arr[j+1] = arr[j];
+            j--;
+        }
+        arr[j+1] = key;
+    }
+}
+
+// -------------------- Quick Sort --------------------
+int partition(vector<int>& arr, int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+    for(int j=low; j<high; j++) {
+        if(arr[j] <= pivot) {
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i+1], arr[high]);
+    return i+1;
+}
+
+void quickSort(vector<int>& arr, int low, int high) {
+    if(low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi-1);
+        quickSort(arr, pi+1, high);
+    }
+}
+
+// -------------------- Merge Sort --------------------
+void merge(vector<int>& arr, int l, int m, int r) {
+    int n1 = m - l + 1, n2 = r - m;
+    vector<int> L(n1), R(n2);
+    
+    for(int i=0; i<n1; i++) L[i] = arr[l+i];
+    for(int j=0; j<n2; j++) R[j] = arr[m+1+j];
+    
+    int i=0, j=0, k=l;
+    while(i<n1 && j<n2) {
+        if(L[i] <= R[j]) arr[k++] = L[i++];
+        else arr[k++] = R[j++];
+    }
+    while(i<n1) arr[k++] = L[i++];
+    while(j<n2) arr[k++] = R[j++];
+}
+
+void mergeSort(vector<int>& arr, int l, int r) {
+    if(l < r) {
+        int m = l + (r-l)/2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m+1, r);
+        merge(arr, l, m, r);
+    }
+}
+
+// -------------------- Main --------------------
+int main() {
+    int N;
+    cin >> N;
+    vector<int> arr(N);
+    for(int i=0; i<N; i++) cin >> arr[i];
+    string algo;
+    cin >> algo;
+
+    if(algo == "bubble") {
+        bubbleSort(arr);
+    } else if(algo == "selection") {
+        selectionSort(arr);
+    } else if(algo == "insertion") {
+        insertionSort(arr);
+    } else if(algo == "quick") {
+        quickSort(arr, 0, N-1);
+    } else if(algo == "merge") {
+        mergeSort(arr, 0, N-1);
+    }
+
+    for(int i=0; i<N; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+    return 0;
+}
+
+__________________________________________________________________________________________________________________________
+
+practical: 10 -  Implement Binary search Tree and its operations ( creation, insertion, deletion).
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+    Node(int val) {
+        data = val;
+        left = right = nullptr;
+    }
+};
+
+class BST {
+public:
+    Node* insert(Node* root, int val) {
+        if (!root) return new Node(val);
+        if (val < root->data)
+            root->left = insert(root->left, val);
+        else if (val > root->data)
+            root->right = insert(root->right, val);
+        return root;
+    }
+
+    Node* findMin(Node* root) {
+        while (root && root->left)
+            root = root->left;
+        return root;
+    }
+
+    Node* deleteNode(Node* root, int val) {
+        if (!root) return nullptr;
+        if (val < root->data)
+            root->left = deleteNode(root->left, val);
+        else if (val > root->data)
+            root->right = deleteNode(root->right, val);
+        else {
+            if (!root->left) {
+                Node* temp = root->right;
+                delete root;
+                return temp;
+            } else if (!root->right) {
+                Node* temp = root->left;
+                delete root;
+                return temp;
+            } else {
+                Node* temp = findMin(root->right);
+                root->data = temp->data;
+                root->right = deleteNode(root->right, temp->data);
+            }
+        }
+        return root;
+    }
+
+    void inorder(Node* root) {
+        if (root) {
+            inorder(root->left);
+            cout << root->data << " ";
+            inorder(root->right);
+        }
+    }
+};
+
+int main() {
+    BST tree;
+    Node* root = nullptr;
+    int n, m, val;
+
+    // Insert operations
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> val;
+        root = tree.insert(root, val);
+    }
+
+    // Delete operations
+    cin >> m;
+    for (int i = 0; i < m; i++) {
+        cin >> val;
+        root = tree.deleteNode(root, val);
+    }
+
+    // Print final inorder
+    if (!root) cout << "EMPTY";
+    else tree.inorder(root);
+    cout << endl;
+
+    return 0;
+}
+__________________________________________________________________________________________________________
+
+Practical: 11 - Implement Traversals Preorder Inorder Postorder on BST.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int data;
+    Node *left, *right;
+    Node(int val) {
+        data = val;
+        left = right = NULL;
+    }
+};
+
+// Insert into BST
+Node* insert(Node* root, int val) {
+    if (root == NULL) return new Node(val);
+    if (val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+    return root;
+}
+
+// Preorder Traversal (Root, Left, Right)
+void preorder(Node* root) {
+    if (root == NULL) return;
+    cout << root->data << " ";
+    preorder(root->left);
+    preorder(root->right);
+}
+
+// Inorder Traversal (Left, Root, Right)
+void inorder(Node* root) {
+    if (root == NULL) return;
+    inorder(root->left);
+    cout << root->data << " ";
+    inorder(root->right);
+}
+
+// Postorder Traversal (Left, Right, Root)
+void postorder(Node* root) {
+    if (root == NULL) return;
+    postorder(root->left);
+    postorder(root->right);
+    cout << root->data << " ";
+}
+
+int main() {
+    int n;
+    cin >> n;
+    Node* root = NULL;
+    for (int i = 0; i < n; i++) {
+        int x;
+        cin >> x;
+        root = insert(root, x);
+    }
+
+    // Print Traversals
+    preorder(root);
+    cout << endl;
+    inorder(root);
+    cout << endl;
+    postorder(root);
+    cout << endl;
+
+    return 0;
+}
+
+_______________________________________________________________________________________________________________________
+
+Practical: 12 - Implement Graph with BFS and DFS Traversals
+
+#include <bits/stdc++.h>
+using namespace std;
+
+class Graph {
+    int n; // number of vertices
+    vector<vector<int>> adjList;   // adjacency list
+    vector<vector<int>> adjMatrix; // adjacency matrix
+
+public:
+    Graph(int n) {
+        this->n = n;
+        adjList.resize(n + 1);
+        adjMatrix.assign(n + 1, vector<int>(n + 1, 0));
+    }
+
+    void addEdge(int u, int v) {
+        // For adjacency list
+        adjList[u].push_back(v);
+        adjList[v].push_back(u); // undirected
+
+        // For adjacency matrix
+        adjMatrix[u][v] = 1;
+        adjMatrix[v][u] = 1;
+    }
+
+    void printAdjList() {
+        cout << "Adjacency List:\n";
+        for (int i = 1; i <= n; i++) {
+            cout << i << " -> ";
+            for (int v : adjList[i]) {
+                cout << v << " ";
+            }
+            cout << "\n";
+        }
+        cout << "\n";
+    }
+
+    void printAdjMatrix() {
+        cout << "Adjacency Matrix:\n";
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                cout << adjMatrix[i][j] << " ";
+            }
+            cout << "\n";
+        }
+        cout << "\n";
+    }
+
+    void BFS(int start) {
+        vector<bool> visited(n + 1, false);
+        queue<int> q;
+
+        cout << "BFS: ";
+        visited[start] = true;
+        q.push(start);
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            cout << u << " ";
+
+            for (int v : adjList[u]) {
+                if (!visited[v]) {
+                    visited[v] = true;
+                    q.push(v);
+                }
+            }
+        }
+        cout << "\n";
+    }
+
+    void DFSUtil(int u, vector<bool> &visited) {
+        visited[u] = true;
+        cout << u << " ";
+        for (int v : adjList[u]) {
+            if (!visited[v]) {
+                DFSUtil(v, visited);
+            }
+        }
+    }
+
+    void DFS(int start) {
+        vector<bool> visited(n + 1, false);
+        cout << "DFS: ";
+        DFSUtil(start, visited);
+        cout << "\n";
+    }
+};
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    Graph g(n);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        g.addEdge(u, v);
+    }
+
+    int start;
+    cin >> start;
+
+    g.printAdjList();
+    g.printAdjMatrix();
+    g.BFS(start);
+    g.DFS(start);
+
+    return 0;
+}
